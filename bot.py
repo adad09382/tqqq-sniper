@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from datetime import date
 import pandas as pd
 import requests
 import yfinance as yf
@@ -78,6 +79,17 @@ def main():
         if len(df) < SMA_WINDOW:
             send_line_notify(
                 f"\n⚠️ [警告] QQQ 數據不足（僅 {len(df)} 筆，需 >= {SMA_WINDOW} 筆），請檢查數據來源。"
+            )
+            return
+
+        # 檢查數據新鮮度：最新一筆不應超過 5 個日曆天前
+        latest_date = df.index[-1].date()
+        days_stale = (date.today() - latest_date).days
+        if days_stale > 5:
+            send_line_notify(
+                f"\n⚠️ [警告] QQQ 數據疑似過舊\n"
+                f"最新一筆：{latest_date}（已 {days_stale} 天前）\n"
+                f"請確認 update_data.py 是否正常運作。"
             )
             return
 
