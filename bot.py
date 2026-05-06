@@ -109,19 +109,21 @@ def build_message(
     }
 
     if state_changed:
-        if current_state == 2:
-            action = "👉 【進場】建倉 100% TQQQ"
+        if current_state == 2 and prev_state == 1:
+            action = "👉 【切換】賣出所有 QQQ → 買入 100% TQQQ"
+        elif current_state == 2 and prev_state == 3:
+            action = "👉 【切換】賣出所有 QQQ → 買入 100% TQQQ"
         elif current_state == 3:
             action = "👉 【減倉】賣出一半 TQQQ → 50% TQQQ + 50% QQQ"
         else:
-            action = "👉 【緊急清倉】立即賣出所有 TQQQ"
+            action = "👉 【切換】賣出所有 TQQQ → 買入 100% QQQ"
     else:
         if current_state == 1:
-            action = "👉 持現金 / QQQ，等待收復 SMA200"
+            action = "👉 持有 QQQ，等待 QQQ 站回 SMA200 再切換 TQQQ"
         elif current_state == 2:
             action = "👉 無新訊號，等待下次轉換（State 1→2 或 3→2）再進場"
         else:
-            action = "👉 維持 50% TQQQ + 50% QQQ，等待回落訊號"
+            action = "👉 維持 50% TQQQ + 50% QQQ，等待回落至 State 2 訊號"
 
     if current_state == 1:
         key_prices = (
