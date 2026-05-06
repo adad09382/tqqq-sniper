@@ -11,7 +11,9 @@ LINE_USER_ID = os.environ.get("LINE_USER_ID")
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _DEFAULT_CSV = os.path.join(_SCRIPT_DIR, "data", "QQQ_1d.csv")
+_DEFAULT_TQQQ_CSV = os.path.join(_SCRIPT_DIR, "data", "TQQQ_1d.csv")
 QQQ_CSV_PATH = os.environ.get("QQQ_CSV_PATH", _DEFAULT_CSV)
+TQQQ_CSV_PATH = os.environ.get("TQQQ_CSV_PATH", _DEFAULT_TQQQ_CSV)
 
 SMA_WINDOW = 200
 OVERHEAT_THRESHOLD = 0.15
@@ -106,6 +108,11 @@ def main():
         bias_ratio = (current_close - sma200) / sma200
         trade_date = df.index[-1].strftime("%Y-%m-%d")
 
+        tqqq_close = None
+        if os.path.exists(TQQQ_CSV_PATH):
+            tqqq_df = load_qqq_from_csv(TQQQ_CSV_PATH)
+            tqqq_close = tqqq_df["Close"].iloc[-1]
+
         # 3. 狀態機判定
         if current_close < sma200:
             state = "🚨 狀態一：絕對防禦\n👉 動作：0% TQQQ（全倉換回 QQQ 或現金）"
@@ -115,12 +122,14 @@ def main():
             state = "🚀 狀態二：全速健康牛市\n👉 動作：100% 全倉 TQQQ"
 
         # 4. 組裝並發送訊息
+        tqqq_line = f"\n💎 TQQQ 收盤: ${tqqq_close:.2f}" if tqqq_close else ""
         msg = (
             f"\n🤖 【TQQQ 狙擊手 - 每日確認】"
             f"\n📅 交易基準日: {trade_date}"
             f"\n📈 QQQ 收盤: ${current_close:.2f}"
             f"\n📏 200日均線: ${sma200:.2f}"
             f"\n📊 乖離率: {bias_ratio * 100:.2f}%"
+            f"{tqqq_line}"
             f"\n----------------------"
             f"\n{state}"
         )
