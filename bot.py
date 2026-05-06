@@ -62,6 +62,10 @@ def load_qqq_from_yfinance() -> pd.DataFrame:
 
 
 def main():
+    if os.environ.get("DATA_UPDATE_FAILED"):
+        send_line_notify("\n⚠️ [警告] CSV 數據更新失敗，今日訊號可能使用舊數據，請手動確認。")
+        return
+
     try:
         # 1. 載入數據（優先本地 CSV，否則使用 yfinance）
         if QQQ_CSV_PATH and os.path.exists(QQQ_CSV_PATH):

@@ -25,9 +25,12 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Update CSV data
+        id: update
+        continue-on-error: true
         run: python update_data.py
 
       - name: Commit updated data
+        if: steps.update.outcome == 'success'
         run: |
           git config user.name "TQQQ Sniper Bot"
           git config user.email "bot@github-actions"
@@ -42,4 +45,5 @@ jobs:
       - name: Execute Trading Strategy Bot
         env:
           LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
+          DATA_UPDATE_FAILED: ${{ steps.update.outcome == 'failure' && 'true' || '' }}
         run: python bot.py
