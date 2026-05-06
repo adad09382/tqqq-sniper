@@ -6,7 +6,8 @@ import pandas as pd
 import requests
 import yfinance as yf
 
-LINE_TOKEN = os.environ.get("LINE_TOKEN")
+LINE_CHANNEL_TOKEN = os.environ.get("LINE_CHANNEL_TOKEN")
+LINE_USER_ID = os.environ.get("LINE_USER_ID")
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _DEFAULT_CSV = os.path.join(_SCRIPT_DIR, "data", "QQQ_1d.csv")
@@ -16,27 +17,33 @@ SMA_WINDOW = 200
 OVERHEAT_THRESHOLD = 0.15
 
 
-def send_line_notify(msg: str) -> None:
-    if not LINE_TOKEN:
-        print("未設定 LINE_TOKEN 環境變數")
+def send_line_message(msg: str) -> None:
+    if not LINE_CHANNEL_TOKEN or not LINE_USER_ID:
+        print("未設定 LINE_CHANNEL_TOKEN 或 LINE_USER_ID 環境變數")
         sys.exit(1)
 
-    url = "https://notify-api.line.me/api/notify"
-    headers = {"Authorization": f"Bearer {LINE_TOKEN}"}
-    data = {"message": msg}
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Authorization": f"Bearer {LINE_CHANNEL_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "to": LINE_USER_ID,
+        "messages": [{"type": "text", "text": msg}],
+    }
 
     for attempt in range(3):
         try:
-            response = requests.post(url, headers=headers, data=data, timeout=10)
+            response = requests.post(url, headers=headers, json=payload, timeout=10)
             if response.status_code == 200:
                 return
-            print(f"LINE Notify 回應異常 (HTTP {response.status_code}): {response.text}")
+            print(f"LINE Messaging API 回應異常 (HTTP {response.status_code}): {response.text}")
         except requests.RequestException as e:
             print(f"第 {attempt + 1} 次發送失敗: {e}")
             if attempt < 2:
                 time.sleep(3)
 
-    print("LINE Notify 發送失敗，已重試 3 次")
+    print("LINE 訊息發送失敗，已重試 3 次")
     sys.exit(1)
 
 
@@ -64,7 +71,7 @@ def load_qqq_from_yfinance() -> pd.DataFrame:
 
 def main():
     if os.environ.get("DATA_UPDATE_FAILED"):
-        send_line_notify("\n⚠️ [警告] CSV 數據更新失敗，今日訊號可能使用舊數據，請手動確認。")
+        send_line_message("\n⚠️ [警告] CSV 數據更新失敗，今日訊號可能使用舊數據，請手動確認。")
         return
 
     try:
@@ -77,7 +84,7 @@ def main():
             df = load_qqq_from_yfinance()
 
         if len(df) < SMA_WINDOW:
-            send_line_notify(
+            send_line_message(
                 f"\n⚠️ [警告] QQQ 數據不足（僅 {len(df)} 筆，需 >= {SMA_WINDOW} 筆），請檢查數據來源。"
             )
             return
@@ -86,7 +93,7 @@ def main():
         latest_date = df.index[-1].date()
         days_stale = (date.today() - latest_date).days
         if days_stale > 5:
-            send_line_notify(
+            send_line_message(
                 f"\n⚠️ [警告] QQQ 數據疑似過舊\n"
                 f"最新一筆：{latest_date}（已 {days_stale} 天前）\n"
                 f"請確認 update_data.py 是否正常運作。"
@@ -117,10 +124,10 @@ def main():
             f"\n----------------------"
             f"\n{state}"
         )
-        send_line_notify(msg)
+        send_line_message(msg)
 
     except Exception as e:
-        send_line_notify(f"\n❌ [錯誤] 機器人執行異常:\n{str(e)}")
+        send_line_message(f"\n❌ [錯誤] 機器人執行異常:\n{str(e)}")
         sys.exit(1)
 
 

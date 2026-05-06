@@ -44,6 +44,7 @@ jobs:
 
       - name: Execute Trading Strategy Bot
         env:
-          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
           DATA_UPDATE_FAILED: ${{ steps.update.outcome == 'failure' && 'true' || '' }}
         run: python bot.py
