@@ -110,13 +110,13 @@ def build_message(
 
     if state_changed:
         if current_state == 2 and prev_state == 1:
-            action = "👉 【切換】賣出所有 QQQ → 買入 100% TQQQ"
+            action = "👉 【切換】賣出 100% QQQ → 買入 100% TQQQ"
         elif current_state == 2 and prev_state == 3:
-            action = "👉 【切換】賣出所有 QQQ → 買入 100% TQQQ"
+            action = "👉 【加倉】賣出持有的 50% QQQ → 補回 TQQQ，恢復 100% TQQQ"
         elif current_state == 3:
-            action = "👉 【減倉】賣出一半 TQQQ → 50% TQQQ + 50% QQQ"
+            action = "👉 【減倉】賣出一半 TQQQ → 調整為 50% TQQQ + 50% QQQ"
         else:
-            action = "👉 【切換】賣出所有 TQQQ → 買入 100% QQQ"
+            action = "👉 【切換】賣出 100% TQQQ → 買入 100% QQQ"
     else:
         if current_state == 1:
             action = "👉 持有 QQQ，等待 QQQ 站回 SMA200 再切換 TQQQ"
