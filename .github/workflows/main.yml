@@ -39,6 +39,7 @@ jobs:
             echo "No new data to commit."
           else
             git commit -m "data: update OHLCV $(date -u +%Y-%m-%d)"
+            git pull --rebase
             git push
           fi
 
